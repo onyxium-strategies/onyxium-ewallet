@@ -1,0 +1,51 @@
+version: "3"
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:9.6.9-alpine
+    restart: always
+    volumes:
+      - postgres-db:/var/lib/postgresql/data
+    networks:
+      - internal
+    environment:
+      POSTGRESQL_PASSWORD: passw0rd
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-U", "postgres"]
+      interval: 30s
+      retries: 3
+    ports:
+      - 5432:5432
+
+  mailhog:
+    container_name: mailhog
+    image: mailhog/mailhog:v1.0.0
+    restart: always
+    networks:
+      - internal
+
+  ewallet:
+    container_name: ewallet
+    image: omisego/ewallet:latest
+    restart: always
+    networks:
+      - internal
+      - external
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: "postgresql://postgres:passw0rd@postgres:5432/ewallet"
+      LOCAL_LEDGER_DATABASE_URL: "postgresql://postgres:passw0rd@postgres:5432/local_ledger"
+      EWALLET_SECRET_KEY: "nVQ7mNZeBH7uOYq3wB6v3iO2FQNLoWLC6rXU64Rau3c="
+      LOCAL_LEDGER_SECRET_KEY: "PntC71yo8RF7PW78hAayf4XTJy6ZL9SArJV/JVb9flc="
+      SMTP_HOST: mailhog
+      SMTP_PORT: 1025
+    ports:
+      - 4000:4000
+
+networks:
+  external:
+  internal:
+
+volumes:
+  postgres-db:
