@@ -26,7 +26,7 @@ services:
 
   ewallet:
     container_name: ewallet
-    image: omisego/ewallet:latest
+    image: omisego/ewallet:6c1aca9
     restart: always
     networks:
       - internal
